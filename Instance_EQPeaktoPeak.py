@@ -88,8 +88,8 @@ class PtPearthquake :
     def Filter(self):
         """filter the signal with a butterworth between for a given frband for a frequency band of 2Hz with moving of 1Hz """
         trfilt = self.tr.copy()   
-#        Fmin = 0.01 + self.frband[0]
-#        Fmax = 2+ self.frband[1]
+        Fmin =  self.frband[0]
+        Fmax =  self.frband[1]
         print 'filt'
         self.trFilt = trfilt.filter('bandpass',freqmin=Fmin,freqmax=Fmax,corners=4,zerophase=True) 
         print "filt the "
