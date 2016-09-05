@@ -95,6 +95,16 @@ class PtPearthquake :
         print "filt the "
         return      
         
+    def Filter_gaussian(self,std):
+        """filter the signal with a gaussian between for a given central frequency (mu) and a std """
+        trfilt = self.tr.copy()   
+        mu =  self.mu
+        std = std
+        print 'filtgaussian'
+        self.trFilt = tr_Gaussian_filter2(self.tr, std, mean)
+        print "filtg aussain "
+        return      
+        
         
     def SNR(self,LimSNR):
         """return SRN calculated as baillard and if the sigal is valid ie SRN above minSNR
