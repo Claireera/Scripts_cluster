@@ -66,7 +66,7 @@ class PtPearthquake :
             
         
     def FStaturation(self):
-        
+        band[1]
         """define if the signal of a given component of an EQ is saturated or not"""
         self.Satured= Saturation(self.tr)
         return
@@ -128,7 +128,7 @@ class PtPearthquake :
               
          # 2.0. Filtering traces with moving windows and select the trace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  
-         self.Filter()
+         self.Filter_gaussian(0.25)
                   
          #2.3. Peak to Peak ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
          self.PeaktoPeak, ptpFirstR = PeaktoPeak(self.trFilt,1,False)
