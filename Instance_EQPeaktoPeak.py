@@ -22,9 +22,8 @@ class PtPearthquake :
     EQ1= PtPearthquake(name,magnitude,depth,Rdistance, Hdistance,Lat,Long,Az,time)
     PtP1 = EQ1.N"""
     
-    def __init__(self,name,magnitude,depth,Rdistance, Lat,Long,Az,time,Station,freqband,tr, component):
+    def __init__(self,name,magnitude,depth,Rdistance, Lat,Long,Az,time,Station,freqcentral,tr, component):
         self.nameEQ = name
-        self.frband = freqband 
         self.depth = depth
         self.magnitude =magnitude
         self.Rdistance = Rdistance
@@ -45,6 +44,7 @@ class PtPearthquake :
         self.Component = component
         self.trFilt =[]
         self.trTrim = []
+        self.mu = freqcentral
         return
     
     def __str__(self):
@@ -85,23 +85,23 @@ class PtPearthquake :
        
         self.Arias= self.tr.stats.sampling_rate*simps(np.gradient(self.tr.data)**2)*pi/2*9.81
         return
-    def Filter(self):
-        """filter the signal with a butterworth between for a given frband for a frequency band of 2Hz with moving of 1Hz """
-        trfilt = self.tr.copy()   
-        Fmin =  self.frband[0]
-        Fmax =  self.frband[1]
-        print 'filt'
-        self.trFilt = trfilt.filter('bandpass',freqmin=Fmin,freqmax=Fmax,corners=4,zerophase=True) 
-        print "filt the "
-        return      
+        
+#    def Filter(self):
+#        """filter the signal with a butterworth between for a given frband for a frequency band of 2Hz with moving of 1Hz """
+#        trfilt = self.tr.copy()   
+#        Fmin =  self.frband[0]
+#        Fmax =  self.frband[1]
+#        print 'filt'
+#        self.trFilt = trfilt.filter('bandpass',freqmin=Fmin,freqmax=Fmax,corners=4,zerophase=True) 
+#        print "filt the "
+#        return      
         
     def Filter_gaussian(self,std):
         """filter the signal with a gaussian between for a given central frequency (mu) and a std """
         trfilt = self.tr.copy()   
-        mu =  self.mu
         std = std
         print 'filtgaussian'
-        self.trFilt = tr_Gaussian_filter2(self.tr, std, mean)
+        self.trFilt = tr_Gaussian_filter2(self.tr, std, self.mu)
         print "filtg aussain "
         return      
         
