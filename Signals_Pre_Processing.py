@@ -412,7 +412,42 @@ def Stream_PBfilter(st,Fmin, Fmax,plot):
         st_copy.plot(fig=fig1,data_unit="$\\frac{m}{s}$")
     return st_copy
     
+def tr_Gaussian_filter2(tr, std, mean):
+    """ return trace filtered with a gaussian filter 
+    input:
+     - tr: obspy trace, signal of a givcen omponnent of an EQ
+     - std , float, standart deviation for gaussain filter
+     - mean : float, center value of the gaussian filter
+    output :
+    - trfilt, obspy trace , trace filter with a gaussian filter 
     
+    exemple:
+    tr_Gaussian_filter2(tr, 0.2, 1) for a gaussian filter around 1Hz with 02 std
+:     """
+        
+    trfiltg =tr.copy()   
+    #frequence d'echantillonage 
+    samp_rate = 100
+    signal_length = len(tr.data)
+    signal_time= [k/samp_rate for k in xrange(signal_length)]
+    #duree de l'aquisition
+    T = len(tr.data)*100
+    #nombre d'echantillon 
+    
+    #frequencies
+    F_signal = np.fft.fft(tr.data)
+    freq = np.fft.fftfreq(len(F_signal),d=0.01)
+    freq = freq[0:len(freq)/2]
+    F_signal= F_signal[0:len(freq)]
+    gauss = np.array([np.sqrt((1/(math.pi*2*std**2)))*math.exp(-((x-mean)**2)/2*std**2) for x in  freq])
+    gauss = gauss/np.max(gauss)
+    
+    #convolution
+    ffiltered = np.fft.irfft(F_signal*gauss) 
+    #save filterd signal in trace data
+    trfiltg.data = ffiltered
+   
+    return trfiltg
     
 def LTASTA(st,thres1, thres2,STA, LTA,plotSTA):
     """ return the cut on and off of the LTA/STA list [[cuton, cutoff], [cuton, cutoff]]
