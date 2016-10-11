@@ -23,8 +23,8 @@ LStations = ['1','2','3','4','5','6','7']
  
 # 1. Selection (in a separate script) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #File = '/home/rault/PHD/Data/Event_stations_Caracteristics_2015_2016Full2.txt' 
-File = '/home/rault/PHD/Data/Event_stations_Caracteristics_2015_2016Full2.txt' #BATS
-Outputfile = open('/home/rault/PHD/Data/List_EQ_St_Comp_Freq_Ml_%s_%s_distmax_%s.txt'%(MlMin,MlMax,DistMax), mode = 'w+')
+File = '/home/rault/PHD/Data/Event_stations_Caracteristics_SSLB_Chichi_afterShocks' #BATS
+Outputfile = open('/home/rault/PHD/Data/List_EQ_St_Comp_Chichi_afterShocks.txt', mode = 'w+')
 
 # This selection returns a list of tuples (station_n, earthquake_m) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #A_St_EQ = Array_St_EQ_MlDist(File, MlMin, MlMax, DistMin, DistMax)
@@ -40,31 +40,22 @@ for line in A_St_EQ:
     Ldata.append([EQname, station, year,jJul, hour, Secondp,Seconds,ml,depth, Rdistance, Lat,Long, Az,BAz])
 
 print 'number of  earthquakes selected with Ml %s max distence is %s'%(MlMax,MlMax), A_St_EQ.shape
-#frequencies 
-frqmin = [k/10. for k in range(2,60,5)]
-frqmax = [k/10. for k in range(7,65,5)] #05 band pass 
-Lfrqtuple = np.column_stack([frqmin,frqmax]).tolist()
 
 #component 
 LComponents = ['N','R','E','T','Z','H']
-#list of couple frq component
-LfreqTuplescompo = []
-for j in xrange(len(LComponents)):
-    for i in xrange(len(Lfrqtuple)):
-        LfreqTuplescompo.append([LComponents[j],i,Lfrqtuple[i]])
+
 #build a list of earthquakes and its features, plus station and frequencies : thus one worker will work for a given EQ, station, component and frequency   
-LEqStCompFreq = Ldata
-LEqStCompFreq2= []
-for EQSt in LEqStCompFreq :
+LEqStComp = Ldata
+LEqStComp2= []
+for EQSt in LEqStComp :
     
-    for Compofrq in LfreqTuplescompo:
+    for Compo in LComponents :
         EQst_copy = copy.copy(EQSt)
         print EQSt
-        for j in xrange(len(Compofrq)) :
-            EQst_copy.append(Compofrq[j])  
-            print EQst_copy,j
-        LEqStCompFreq2.append(EQst_copy)
+        
+        EQst_copy.append(Compo)  
+        LEqStComp2.append(EQst_copy)
 # This selection returns a list of tuples (staftion_n, earthquake_m)
 # Write sequence of lines at the end of the file.ll
-json.dump(LEqStCompFreq2,Outputfile)
+json.dump(LEqStComp2,Outputfile)
 Outputfile.close()

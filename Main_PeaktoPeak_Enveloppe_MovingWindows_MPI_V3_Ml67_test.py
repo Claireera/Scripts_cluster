@@ -44,10 +44,10 @@ import calendar
 # limit SNR above signal is valid
 
 #Magnitude,min and max, and Distance min and max
-MlMin= 3
-MlMax = 4
+MlMin= 6
+MlMax = 7
 DistMin = 0
-DistMax = 100
+DistMax = 200
 jJultoplot = 206
 refStation = '5'
 LStations = ['1','2','3','4','5','6','7']
@@ -121,7 +121,7 @@ for EqSta in LEqStCompFreq:
                 dStart= f[EQname]['St{}'.format(Station)].create_dataset('Start_time_{}'.format(Component),shape=(1,),dtype='f') 
                 dSend= f[EQname]['St{}'.format(Station)].create_dataset('End_time_{}'.format(Component),shape=(1,),dtype='f') 
                 dStexist = f[EQname]['St{}'.format(Station)].create_dataset('Exist_{}'.format(Component),shape=(1,),data=True)
-                #dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
+                dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
                 dStrank = f[EQname]['St{}'.format(Station)].create_dataset('rank_{}'.format(Component),shape=(12,),dtype='f')
                 
     if 'St{}'.format(Station) not in f[EQname]: 
@@ -147,7 +147,7 @@ for EqSta in LEqStCompFreq:
                     dStart= f[EQname]['St{}'.format(Station)].create_dataset('Start_time_{}'.format(Component),shape=(1,),dtype='f') 
                     dSend= f[EQname]['St{}'.format(Station)].create_dataset('End_time_{}'.format(Component),shape=(1,),dtype='f') 
                     dStexist = f[EQname]['St{}'.format(Station)].create_dataset('Exist_{}'.format(Component),shape=(1,),data=True)
-                    #dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
+                    dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
                     dStrank = f[EQname]['St{}'.format(Station)].create_dataset('rank_{}'.format(Component),shape=(12,),dtype='f')
 print 'database built'
 
@@ -159,18 +159,18 @@ L=[]
 for EQstCompFreq in LEqStCompFreq_split:
 #            # 6.0 take case feature EQ, station component and frequency
     EQname, Station, Year,jJul, Hour, Secondp, Seconds,Ml,Depth, Rdistance, Lat,Long, Az,BAz, Component, number, freqband = EQstCompFreq
-         
-        
+#         
+#        
     if Year<>f[EQname].attrs['Year'] or  Hour<>f[EQname].attrs['Hour'] or  jJul<>f[EQname].attrs['JJul']: 
         print 'ERROR PROBLEM OF EQ FEATURES' , 'Je suis le worker {} et je traite le seisme {}, et la composante {} pour la frequence max {}'.format(me,EQname,Component, freqband[1])
-        
-    print 'I am the worker {} on the node {} delealing with Eq {} component {} and freq {}'.format(me, MPI.Get_processor_name(),EQname,Component, freqband[1])  
-    ## 6.1 read file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#        
+    print 'I am the worker {} of the node and I am dealing with EQ {},of  the component {} for the freq max {}'.format(me,EQname,Component, freqband[1])   
+#    ## 6.1 read file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/GSW0%s.%s.%s.%s.00.00.BHN.SAC'%(Year,jJul,Station,Year,jJul,str(Hour))) : 
-       print 'file not existing Year :',  Year, 'Julian day : ',jJul, 'Hour : ', Hour
+       #print 'file not existing Year :',  Year, 'Julian day : ',jJul, 'Hour : ', Hour
        f[EQname]['St{}'.format(Station)]['Exist_{}'.format(Component)][0]=False
        continue
-   
+#   
     st=Read_event(Year,jJul,Hour,Secondp, Station, False)
     #if the begining of the signal is too close to 00min then the wave peaking won't be accurate thus it's necessary to merge the signal whith the previous one! 
     if Secondp<100:
@@ -180,7 +180,8 @@ for EQstCompFreq in LEqStCompFreq_split:
             if int(jJul)-1>1:
                 st = st + Read_event(Year,int(jJul-1),str(23),Secondp, Station, False)
             else : 
-                st = st + Read_event(str(int(Year)-1),str(365),str(23),Secondp, Station, False)
+                if number==10 : 
+                    st = st + Read_event(str(int(Year)-1),str(365),str(23),Secondp, Station, False)
     st.merge(method= 1)
     
     if Component in ['R', 'T']:
@@ -195,7 +196,7 @@ for EQstCompFreq in LEqStCompFreq_split:
     else :
         st_copy = st.copy()
         tr1 = st_copy.select(component=Component)[0]
-
+#
     #6.1 Satureation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Satured = Saturation(tr1,False)
     
@@ -203,7 +204,6 @@ for EQstCompFreq in LEqStCompFreq_split:
     stcorrect = Stream_Correction(st, Station, False)
     
     #6.3 Rotation~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    strot = Rotation(stcorrect,BAz, False)
     st = stcorrect.copy()
 #
     print 'Je suis le worker {} et je traite le seisme {}, et la composante {} pour la frequence max {}'.format(me,EQname,Component, freqband[1])
@@ -211,7 +211,7 @@ for EQstCompFreq in LEqStCompFreq_split:
     #6.4 select the trace of the component~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if Component in ['R', 'T']:
         st_copy = st.copy()
-        strot_copy= strot.copy()
+        strot_copy = Rotation(st_copy ,BAz, False)
         tr = strot_copy.select(component=Component)[0]
         trZ = st_copy.select(component="Z")[0]
     elif Component=='H':
@@ -223,12 +223,11 @@ for EQstCompFreq in LEqStCompFreq_split:
         st_copy = st.copy()
         tr = st_copy.select(component=Component)[0]
         trZ = st_copy.select(component="Z")[0]
-
-    #6.5Define Python instance nameEQ,magnitude,depth,Rdistance,Lat,Long,Az,time,Station, frequency band, stream, streamrot~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+#
+#    #6.5Define Python instance nameEQ,magnitude,depth,Rdistance,Lat,Long,Az,time,Station, frequency band, stream, streamrot~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     EQ = PtPearthquake(EQname,f[EQname].attrs['Ml'],f[EQname].attrs['Depth'],f[EQname]['St{}'.format(Station)].attrs['RDist'],f[EQname].attrs['Lat'],f[EQname].attrs['Long'],f[EQname]['St{}'.format(Station)].attrs['Az'],[Year,jJul,Hour,str(int(Secondp)),str(int(Seconds))],Station,freqband,tr,Component)         
-  
-    #6.6 P and S arrivals calculated on the Z componenent~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#  
+#    #6.6 P and S arrivals calculated on the Z componenent~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
     EQ.second_P, EQ.second_S = WavePicking2(trZ,5,int(EQ.time[3]),int(EQ.time[4]),False)
   
@@ -272,33 +271,32 @@ for EQstCompFreq in LEqStCompFreq_split:
     f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SecondS_{}'.format(EQ.Component)][number] = Dict['second_S']
     f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SecondP_{}'.format(EQ.Component)][number] = Dict['second_P']
     f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Freq_{}'.format(EQ.Component)][number] = Dict['frband'][0]
-    if MPI.Get_processor_name() == 'compute-0-0.local':
-        mpi =0
-    elif MPI.Get_processor_name() == 'compute-0-1.local':
-        mpi =1
-    elif MPI.Get_processor_name() == 'compute-0-2.local':
-        mpi =2
-    elif MPI.Get_processor_name() == 'compute-0-3.local':
-        mpi =3
-    elif MPI.Get_processor_name() == 'compute-0-4.local':
-        mpi =4
-    elif MPI.Get_processor_name() == 'compute-0-5.local':
-        mpi =5
-    elif MPI.Get_processor_name() == 'compute-0-6.local':
-        mpi =6
-    elif MPI.Get_processor_name() == 'compute-0-7.local':
-        mpi =7
-    elif MPI.Get_processor_name() == 'compute-0-12.local':
-        mpi =12
-    elif MPI.Get_processor_name() == 'compute-0-13.local':
-        mpi =13
-    else :
-        mpi =100
-        
-        
-    #f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Processor_{}'.format(EQ.Component)][number] = mpi
+#    if MPI.Get_processor_name() == 'compute-0-0.local':
+#        mpi =0
+#    elif MPI.Get_processor_name() == 'compute-0-1.local':
+#        mpi =1
+#    elif MPI.Get_processor_name() == 'compute-0-2.local':
+#        mpi =2
+#    elif MPI.Get_processor_name() == 'compute-0-3.local':
+#        mpi =3
+#    elif MPI.Get_processor_name() == 'compute-0-4.local':
+#        mpi =4
+#    elif MPI.Get_processor_name() == 'compute-0-5.local':
+#        mpi =5
+#    elif MPI.Get_processor_name() == 'compute-0-6.local':
+#        mpi =6
+#    elif MPI.Get_processor_name() == 'compute-0-7.local':
+#        mpi =7
+#    elif MPI.Get_processor_name() == 'compute-0-12.local':
+#        mpi =12
+#    elif MPI.Get_processor_name() == 'compute-0-13.local':
+#        mpi =13
+#    else :
+#        mpi =100
+#        
+    f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Processor_{}'.format(EQ.Component)][number] = MPI.Get_processor_name()
     f[EQ.nameEQ]['St{}'.format(EQ.Station)]['rank_{}'.format(EQ.Component)][number] = me
-    if number==10 : 
+    if number==11 : 
         print 'NUMBER',number,'satured', Dict['Satured'][0], 'valid',Dict['valid'],Dict['PGA']
         f[EQ.nameEQ]['St{}'.format(EQ.Station)]['valid_{}'.format(EQ.Component)][0]=Dict['valid']
         f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SNR_{}'.format(EQ.Component)][0] = Dict['SNR']

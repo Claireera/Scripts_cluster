@@ -401,6 +401,62 @@ def Array_St_EQ_MlDist(File, MlMin, MlMax, DistMin, DistMax) :
    
     return Aevent
     
+def Array_St_EQ_MlDist_BATS(File, MlMin, MlMax, DistMin, DistMax) : 
+    """ Return an array containing the BATS station -event caracteristics for events with a magnitude dbetween [MlMin; MlLMax] and distant from [DistMin, DistMax] to station 3
+     
+    * input : 
+        - File: txt file containing event informations
+        - station: reference station
+        -MlMin type float, Minimum magnitude
+        - MlMax, type Float, Maximum Magnitude
+        -DistMin, Type Minimum distance 
+        -DistMax , type float Maximumdistance 
+        -output, type str; file where the final aray ll be save 
+    * output :
+        - Aevent :  type np array each line gives  : station year jJul hour Start ML depth Rev_st BAz_ev_st Az_ev_st where we have satas about a given station
+            where: 
+                    - Station: station considered
+                    - year :  year
+                    - julian_day : Julian day 
+                    - Hour :  hour of the event
+                    - secondp : event start time of the P wave in second calculated with Chie t al 2001 (surface) and iasp model 
+                    - seconds : event start time of the P wave in second calculated withChie t al 2001 (surface) and  iasp model 
+                    - ML :  magnitude 
+                    - depth :  depth in km
+                    - Rev_st: radiale distance between the source and the event in km 
+                    - BAz_ev_st :  back azimuth
+                    - Az_ev_st :  azimuth 
+		    - Lat; latitude of event
+		    -Long : longitude
+        - Aevent.shape: type list , shape of the array 
+       
+    * exemple: 
+        File ='/home/claire/PHD/Working/Data/Event_stations_Caracteristics.txt'
+        SelectEventDist(File,10, 20, '7')"""
+    Dictst = {'1':-2,'2':-1,'3':0,'4':1,'5':2,'6':3,'7':4}   
+    List=[]
+    B = open(File,'r')
+    for ligne in B: 
+       L1 = ligne.split(',')
+       columnDist = L1.index('R')
+       columnMl = L1.index('ML')
+       break
+    
+    B.close()
+    A = np.loadtxt(File,skiprows=1,delimiter = ',',converters ={0:lambda x: 1 if x == 'YULB' else 2})      
+    #2. select ligne corresponding to the given station first ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    CoordSelected =  np.argwhere(((A[:, columnDist]>=DistMin) & (A[:, columnDist]<DistMax) & (A[:, columnMl]>=MlMin) & (A[:, columnMl]<MlMax)))
+    #take the coordinates of the EQ corresponding to the station considered
+    #CoordSelected =np.concatenate((CoordSelectedinf4,CoordSelectedsup4)) 
+
+    #3. list of events :  build a new array containing all the information about the event we are interrested in~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Levent=[]
+    Levent = [A[i] for i in CoordSelected[:,0] if A[i] not in Levent] #number of row
+     
+    Aevent = np.array(Levent)
+    LEQ= [str()]
+   
+    return Aevent
     
 def DeleteEventMLDistJJulref(File, station, MlMin, MlMax, DistMin, DistMax):
     """ Return an array containing the station -event caracteristics for events with a magnitude dbetween [MlMin; MlLMax] and distant from [DistMin, DistMax] for a given julian day reference 

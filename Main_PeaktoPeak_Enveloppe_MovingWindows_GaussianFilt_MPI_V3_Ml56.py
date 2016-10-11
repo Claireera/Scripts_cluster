@@ -161,7 +161,7 @@ for worker in range(size):
                 
                 
             ## 6.1 read file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/GSW0%s.%s.%s.%s.00.00.BH%s.SAC'%(Year,jJul,Station,Year,jJul,str(Hour),Component)) : 
+            if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/GSW0%s.%s.%s.%s.00.00.BHN.SAC'%(Year,jJul,Station,Year,jJul,str(Hour))) : 
                #print 'file not existing Year :',  Year, 'Julian day : ',jJul, 'Hour : ', Hour
                f[EQname]['St{}'.format(Station)]['Exist_{}'.format(Component)][0]=False
                continue
@@ -257,7 +257,7 @@ for worker in range(size):
                 #Arias
                 EQ.FArias()
                 #2.6 .4 Peak to Peak and filter
-                EQ.PtP_envelope()
+                EQ.PtP_envelope_gauss()
              
 ##                2.7 Dictionary containing parameters definition of the EQ considered at the given station for a given frequency of filtering
     ##                dataPickle = qstatcPickle.dumps(EQ)

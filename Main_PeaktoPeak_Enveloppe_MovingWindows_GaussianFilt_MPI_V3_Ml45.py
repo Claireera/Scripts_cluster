@@ -108,10 +108,10 @@ for EqSta in LEqStCompFreq:
         grpSt.attrs['BAz'] = BAz
         for Component in LComponents:
             if 'PtP_{}'.format(Component) not in f[EQname]['St{}'.format(Station)]:
-                dStPtP = f[EQname]['St{}'.format(Station)].create_dataset('PtP_{}'.format(Component),(11,), dtype='f')
-                dSecondS = f[EQname]['St{}'.format(Station)].create_dataset('SecondS_{}'.format(Component),(11,), dtype='f')
-                dSecondP = f[EQname]['St{}'.format(Station)].create_dataset('SecondP_{}'.format(Component),(11,), dtype='f')
-                dfreq = f[EQname]['St{}'.format(Station)].create_dataset('Freq_{}'.format(Component),(11,), dtype='f')
+                dStPtP = f[EQname]['St{}'.format(Station)].create_dataset('PtP_{}'.format(Component),(12,), dtype='f')
+                dSecondS = f[EQname]['St{}'.format(Station)].create_dataset('SecondS_{}'.format(Component),(12,), dtype='f')
+                dSecondP = f[EQname]['St{}'.format(Station)].create_dataset('SecondP_{}'.format(Component),(12,), dtype='f')
+                dfreq = f[EQname]['St{}'.format(Station)].create_dataset('Freq_{}'.format(Component),(12,), dtype='f')
                 dStPGA = f[EQname]['St{}'.format(Station)].create_dataset('PGA_{}'.format(Component),shape=(1,),dtype='f')
                 dStPGV = f[EQname]['St{}'.format(Station)].create_dataset('PGV_{}'.format(Component),shape=(1,),dtype='f')
                 dStArias = f[EQname]['St{}'.format(Station)].create_dataset('Arias_{}'.format(Component),shape=(1,),dtype='f')
@@ -131,10 +131,10 @@ for EqSta in LEqStCompFreq:
             
             for Component in LComponents:
                 if 'PtP_{}'.format(Component) not in f[EQname]['St{}'.format(Station)]:
-                    dStPtP = f[EQname]['St{}'.format(Station)].create_dataset('PtP_{}'.format(Component),(11,), dtype='f')
-                    dSecondS = f[EQname]['St{}'.format(Station)].create_dataset('SecondS_{}'.format(Component),(11,), dtype='f')
-                    dSecondP = f[EQname]['St{}'.format(Station)].create_dataset('SecondP_{}'.format(Component),(11,), dtype='f')
-                    dfreq = f[EQname]['St{}'.format(Station)].create_dataset('Freq_{}'.format(Component),(11,), dtype='f')
+                    dStPtP = f[EQname]['St{}'.format(Station)].create_dataset('PtP_{}'.format(Component),(12,), dtype='f')
+                    dSecondS = f[EQname]['St{}'.format(Station)].create_dataset('SecondS_{}'.format(Component),(12,), dtype='f')
+                    dSecondP = f[EQname]['St{}'.format(Station)].create_dataset('SecondP_{}'.format(Component),(12,), dtype='f')
+                    dfreq = f[EQname]['St{}'.format(Station)].create_dataset('Freq_{}'.format(Component),(12,), dtype='f')
                     dStPGA = f[EQname]['St{}'.format(Station)].create_dataset('PGA_{}'.format(Component),shape=(1,),dtype='f')
                     dStPGV = f[EQname]['St{}'.format(Station)].create_dataset('PGV_{}'.format(Component),shape=(1,),dtype='f')
                     dStArias = f[EQname]['St{}'.format(Station)].create_dataset('Arias_{}'.format(Component),shape=(1,),dtype='f')
@@ -161,7 +161,7 @@ for worker in range(size):
                 
                 
             ## 6.1 read file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/GSW0%s.%s.%s.%s.00.00.BH%s.SAC'%(Year,jJul,Station,Year,jJul,str(Hour),Component)) : 
+            if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/GSW0%s.%s.%s.%s.00.00.BHN.SAC'%(Year,jJul,Station,Year,jJul,str(Hour),Component)) : 
                #print 'file not existing Year :',  Year, 'Julian day : ',jJul, 'Hour : ', Hour
                f[EQname]['St{}'.format(Station)]['Exist_{}'.format(Component)][0]=False
                continue
@@ -257,7 +257,7 @@ for worker in range(size):
                 #Arias
                 EQ.FArias()
                 #2.6 .4 Peak to Peak and filter
-                EQ.PtP_envelope()
+                EQ.PtP_envelope_gauss()
              
 ##                2.7 Dictionary containing parameters definition of the EQ considered at the given station for a given frequency of filtering
     ##                dataPickle = qstatcPickle.dumps(EQ)

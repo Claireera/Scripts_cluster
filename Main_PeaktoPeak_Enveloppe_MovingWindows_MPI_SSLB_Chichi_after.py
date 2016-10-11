@@ -34,7 +34,7 @@ from Events_Selections import *
 from Signals_Pre_Processing import *
 from Plot_results import *
 from Plot_Waveforms import *
-from Instance_EQPeaktoPeak import *
+from Instance_EQPeaktoPeak_SSLB_Chichi import *
 from Signal_Wave_Picking import *
 import cPickle
 import json
@@ -57,7 +57,7 @@ LComponents = ['N','E','Z']
 LimSNR = 2
 """1. Open Earthquakes file comtaining earthquakes features station, component and  Selection (in a separate script) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-with open('/home/rault/PHD/Data/List_EQ_St_Comp_SSLB_afterChichi.txt'%(MlMin,MlMax,DistMax)) as f:
+with open('/home/rault/PHD/Data/List_EQ_St_Comp_Chichi_afterShocks.txt' as f:
     LEqStCompFreq =json.load(f)
 
 """2. creation of a h5py file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""

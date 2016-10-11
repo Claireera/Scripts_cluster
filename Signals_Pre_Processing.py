@@ -171,13 +171,13 @@ def Stream_Correctionall(st, plot):
         plt.title('Corrected')
         stcorrect.plot(fig=fig1,label = 'corrected')
     return stcorrect
-        
+    
     
 def Stream_Correction(st, Station, plot): 
     """return a st whitening and corrected from instrumental response with calibration = 1!!!
     * inputs :
         - st :type str;  stream to be coirrected
-        - station :  type str,  station considered
+        - station :  type str,  station considered ["1","2","3","4","5","6"], '7', yulb or HGSD
         - plot : if plot == True, plot of un corrected and corrected waveform will be show
     * output : 
         - st : type : stream ; Stream containing the 3 traces ENZ whitening and corrected from instrumental response 
@@ -206,6 +206,22 @@ def Stream_Correction(st, Station, plot):
         'zeros': [-3.16174E1+1j*0.0,0.0+1j*0.0,0.0+1j*0.0],
         'gain': 4.8053e+8,
         'sensitivity': 2.4347e+9} 
+    
+    elif Station =="HGSD":
+        paz_st = {
+            'poles': [-0.03701+0.03701j, -0.03701-0.03701j, -502.7+0j,
+                      -1005+0j, -1131+0j],
+            'zeros': [0j, 0j],
+            'gain': 5.714e+08,
+            'sensitivity': 2.54565e+09}
+    elif Station =="YULB" : 
+        paz_st = {
+            'poles': [-0.01815+0.01799j, -0.01815-0.01799j, -173+0j,
+                      -196+231j, -196-231j,-732+1451j,-732-1451j],
+            'zeros': [0j, 0j,-108+0j,-161+0j],
+            'gain': 2.41176e+09,
+            'sensitivity': 2.01304e+09}
+    
         # AD facteur = 16.53volt/2^24 sensib=Sv*G(=1)/AD, 
     
     st.simulate(paz_remove = paz_st,water_level= 1E-4,simulate_sensitivity= False)

@@ -12,8 +12,8 @@ import json
 import numpy as np
 import copy
 #Magnitude,min and max, and Distance min and max
-MlMin= 6
-MlMax = 7
+MlMin= 4
+MlMax = 5
 DistMin = 0
 DistMax = 200
 jJultoplot = 206
@@ -22,7 +22,7 @@ LStations = ['1','2','3','4','5','6','7']
 
 
 # 1. Selection (in a separate script) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-File = '/home/rault/PHD/Data/Event_stations_Caracteristics_2015_2016Full_BATS' 
+File = '/home/rault/PHD/Data/Event_stations_Caracteristics_2015_2016Full2.txt' 
 Outputfile = open('/home/rault/PHD/Data/List_EQ_St_Comp_FreqCentrale_Ml_%s_%s_distmax_%s.txt'%(MlMin,MlMax,DistMax), mode = 'w+')
 
 # This selection returns a list of tuples (station_n, earthquake_m) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,7 +40,7 @@ for line in A_St_EQ:
 
 print 'number of  earthquakes selected with Ml %s max distence is %s'%(MlMax,MlMax), A_St_EQ.shape
 #frequencies 
-frqcentral = [k/10. for k in range(5,50,5)]
+frqcentral = [k/10. for k in range(5,60,5)]
 
 #component 
 LComponents = ['N','R','E','T','Z','H']

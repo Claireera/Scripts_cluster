@@ -121,7 +121,7 @@ for EqSta in LEqStCompFreq:
                 dStart= f[EQname]['St{}'.format(Station)].create_dataset('Start_time_{}'.format(Component),shape=(1,),dtype='f') 
                 dSend= f[EQname]['St{}'.format(Station)].create_dataset('End_time_{}'.format(Component),shape=(1,),dtype='f') 
                 dStexist = f[EQname]['St{}'.format(Station)].create_dataset('Exist_{}'.format(Component),shape=(1,),data=True)
-                #dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
+                dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
                 dStrank = f[EQname]['St{}'.format(Station)].create_dataset('rank_{}'.format(Component),shape=(12,),dtype='f')
                 
     if 'St{}'.format(Station) not in f[EQname]: 
@@ -147,7 +147,7 @@ for EqSta in LEqStCompFreq:
                     dStart= f[EQname]['St{}'.format(Station)].create_dataset('Start_time_{}'.format(Component),shape=(1,),dtype='f') 
                     dSend= f[EQname]['St{}'.format(Station)].create_dataset('End_time_{}'.format(Component),shape=(1,),dtype='f') 
                     dStexist = f[EQname]['St{}'.format(Station)].create_dataset('Exist_{}'.format(Component),shape=(1,),data=True)
-                    #dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
+                    dStProcessor = f[EQname]['St{}'.format(Station)].create_dataset('Processor_{}'.format(Component),(12,), dtype='string')
                     dStrank = f[EQname]['St{}'.format(Station)].create_dataset('rank_{}'.format(Component),shape=(12,),dtype='f')
 print 'database built'
 
@@ -296,7 +296,7 @@ for EQstCompFreq in LEqStCompFreq_split:
         mpi =100
         
         
-    #f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Processor_{}'.format(EQ.Component)][number] = mpi
+    f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Processor_{}'.format(EQ.Component)][number] = mpi
     f[EQ.nameEQ]['St{}'.format(EQ.Station)]['rank_{}'.format(EQ.Component)][number] = me
     if number==10 : 
         print 'NUMBER',number,'satured', Dict['Satured'][0], 'valid',Dict['valid'],Dict['PGA']

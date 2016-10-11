@@ -257,7 +257,7 @@ for worker in range(size):
                 #Arias
                 EQ.FArias()
                 #2.6 .4 Peak to Peak and filter
-                EQ.PtP_envelope()
+                EQ.PtP_envelope_gauss()
              
 ##                2.7 Dictionary containing parameters definition of the EQ considered at the given station for a given frequency of filtering
     ##                dataPickle = qstatcPickle.dumps(EQ)

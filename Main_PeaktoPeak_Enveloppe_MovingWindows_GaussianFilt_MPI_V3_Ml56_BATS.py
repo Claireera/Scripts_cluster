@@ -44,8 +44,8 @@ import calendar
 # limit SNR above signal is valid
 
 #Magnitude,min and max, and Distance min and max
-MlMin= 6
-MlMax = 7
+MlMin= 5
+MlMax = 6
 DistMin = 0
 DistMax = 200
 jJultoplot = 206
@@ -57,11 +57,11 @@ LComponents = ['N','R','E','T','Z','H']
 LimSNR = 2
 """1. Open Earthquakes file comtaining eqrthqukes fetures station, component and  Selection (in a separate script) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-with open('/home/rault/PHD/Data/List_EQ_St_Comp_FreqCentrale_Ml_%s_%s_distmax_%s.txt'%(MlMin,MlMax,DistMax)) as f:
+with open('/home/rault/PHD/Data/List_EQ_St_Comp_FreqCentrale_Ml_%s_%s_distmax_%s_05_Bats.txt'%(MlMin,MlMax,DistMax)) as f:
     LEqStCompFreq =json.load(f)
 
 """2. creation of a h5py file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-f = h5py.File('/home/rault/PHD/Results/Parallel_PeaktoPeak_gaussianFilt_V3_Ml_%s_%s_distmax_%s.hdf5'%(MlMin,MlMax,DistMax), 'w',driver= 'mpio', comm=Comm,libver='latest')
+f = h5py.File('/home/rault/PHD/Results/Parallel_PeaktoPeak_gaussianFilt_V3_Ml_%s_%s_distmax_%s_05_Bats.hdf5'%(MlMin,MlMax,DistMax), 'w',driver= 'mpio', comm=Comm,libver='latest')
 #use libver='latest' will help to be faster !
 """ 3. Split the list of Component_frequency and the list of dataSet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 def _split_seq(seq, size):
@@ -155,13 +155,13 @@ for worker in range(size):
         #            # 6.0 take case feature EQ, station component and frequency
             EQname, Station, Year,jJul, Hour, Secondp, Seconds,Ml,Depth, Rdistance, Lat,Long, Az,BAz, Component, number, freqcentral = EQstCompFreq
                  
-                
+            print 'I am the worker {} of the node {} dealing with the EQ {}, component {} and freq max'.format(me, MPI.Get_processor_name(),EQname,Component, freqband[1])
             if Year<>f[EQname].attrs['Year'] or  Hour<>f[EQname].attrs['Hour'] or  jJul<>f[EQname].attrs['JJul']: 
                 print 'ERROR PROBLEM OF EQ FEATURES' , 'Je suis le worker {} et je traite le seisme {}, et la composante {} pour la frequence max {}'.format(me,EQname,Component, freqcentral)
                 
                 
             ## 6.1 read file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/GSW0%s.%s.%s.%s.00.00.BHN.SAC'%(Year,jJul,Station,Year,jJul,str(Hour))) : 
+            if not  os.path.exists('/home/burtin/DATA/LinTianShan/Seismic_Data/20%s/R%s.02/%s.%s.%s.%s.00.00.BHN.SAC'%(Year,jJul,Station,Year,jJul,str(Hour))) : 
                #print 'file not existing Year :',  Year, 'Julian day : ',jJul, 'Hour : ', Hour
                f[EQname]['St{}'.format(Station)]['Exist_{}'.format(Component)][0]=False
                continue
@@ -200,7 +200,7 @@ for worker in range(size):
             #6.3 Rotation~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             strot = Rotation(stcorrect,BAz, False)
             st = stcorrect.copy()
-#Hour
+#
             print 'Je suis le worker {} et je traite le seisme {}, et la composante {} pour la frequence max {}'.format(me,EQname,Component, freqcentral)
 #           print 'There is still 
             #6.4 select the trace of the component~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
