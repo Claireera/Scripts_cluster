@@ -22,7 +22,7 @@ class PtPearthquake :
     EQ1= PtPearthquake(name,magnitude,depth,Rdistance, Hdistance,Lat,Long,Az,time)
     PtP1 = EQ1.N"""
     
-    def __init__(self,name,magnitude,depth,Rdistance, Lat,Long,Az,time,Station,freqcentral,tr, component):
+    def __init__(self,name,magnitude,depth,Rdistance, Lat,Long,Az,time,Station,freqband,tr, component):
         self.nameEQ = name
         self.depth = depth
         self.magnitude =magnitude
@@ -44,7 +44,7 @@ class PtPearthquake :
         self.Component = component
         self.trFilt =[]
         self.trTrim = []
-        self.mu = freqcentral
+        self.frband = freqband
         return
     
     def __str__(self):
@@ -86,15 +86,15 @@ class PtPearthquake :
         self.Arias= self.tr.stats.sampling_rate*simps(np.gradient(self.tr.data)**2)*pi/2*9.81
         return
         
-#    def Filter(self):
-#        """filter the signal with a butterworth between for a given frband for a frequency band of 2Hz with moving of 1Hz """
-#        trfilt = self.tr.copy()   
-#        Fmin =  self.frband[0]
-#        Fmax =  self.frband[1]
-#        print 'filt'
-#        self.trFilt = trfilt.filter('bandpass',freqmin=Fmin,freqmax=Fmax,corners=4,zerophase=True) 
-#        print "filt the "
-#        return      
+    def Filter(self):
+        """filter the signal with a butterworth between for a given frband for a frequency band of 2Hz with moving of 1Hz """
+        trfilt = self.tr.copy()   
+        Fmin =  self.frband[0]
+        Fmax =  self.frband[1]
+        print 'filt'
+        self.trFilt = trfilt.filter('bandpass',freqmin=Fmin,freqmax=Fmax,corners=4,zerophase=True) 
+        print "filt the "
+        return      
         
     def Filter_gaussian(self,std):
         """filter the signal with a gaussian between for a given central frequency (mu) and a std """
@@ -119,7 +119,7 @@ class PtPearthquake :
         return 
         
         
-    def PtP_envelope(self):
+    def PtP_envelope_gauss(self):
         
          """return a list of array type ([Maxpeak],[PeaktoPeak],[Sumenvelope]) at each turn i function made to share work between the threads
          input : 
@@ -135,6 +135,21 @@ class PtPearthquake :
   
          return
          
+    def PtP_envelope(self):
+        
+         """return a list of array type ([Maxpeak],[PeaktoPeak],[Sumenvelope]) at each turn i function made to share work between the threads
+         input : 
+         output :instance attributes are defined : Envelope_Itegral, and PtP for each component of the stream 
+         exemple : EQ.PtP_envelope"""
+              
+         # 2.0. Filtering traces with moving windows and select the trace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                 
+         self.Filter()
+                  
+         #2.3. Peak to Peak ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         self.PeaktoPeak, ptpFirstR = PeaktoPeak(self.trFilt,1,False)
+  
+         return
     def PtP_envelope_Test(self):
         
          """return a list of array type ([Maxpeak],[PeaktoPeak],[Sumenvelope]) at each turn i function made to share work between the threads
