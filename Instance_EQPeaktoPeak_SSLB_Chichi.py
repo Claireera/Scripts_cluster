@@ -75,11 +75,12 @@ class PtPearthquake :
     def FPGA(self):
         """calculate the maximum of acceleration of each component of a given EQ"""
    
-        self.PGA= np.max(np.gradient(np.abs(self.tr.data)))
+        self.PGA= np.max(np.abs(np.gradient(self.tr.data)))
         return
+        
     def FPGV(self):
         """calculate the maximum of velocity of each component of a given EQ"""
-        self.PGV= np.max(np.abs(tr.data))
+        self.PGV= np.max(np.abs(self.tr.data))
         return
     def FArias(self):
         """calculate the Arias of each component of a given EQ"""
@@ -89,7 +90,7 @@ class PtPearthquake :
     def FEnveloppe(self):
         """calculate the maximum of the eneveloppe of the signal calculated nvelope is determined by adding the squared amplitudes of the function and it’s Hilbert-Transform and then taking the square-root. (See [Kanasewich1981]))"""
         
-        self.Enveloppe = np.max(obspy.signal.filter.envelope(tr.data))
+        self.Enveloppe = np.max(obspy.signal.filter.envelope(self.tr.data))
         return
         
     def Filter(self):
@@ -133,6 +134,6 @@ class PtPearthquake :
          exemple : EQ.PtP_envelope"""
     
          #2.3. Peak to Peak ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         self.PeaktoPeak, ptpFirstR = PeaktoPeak(self.trFilt,1,False)
+         self.PeaktoPeak, ptpFirstR = PeaktoPeak(self.tr,1,False)
   
          return

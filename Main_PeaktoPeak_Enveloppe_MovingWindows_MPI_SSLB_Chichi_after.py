@@ -49,19 +49,17 @@ MlMax = 7
 DistMin = 0
 DistMax = 200
 jJultoplot = 206
-refStation = '5'
-LStations = ['1','2','3','4','5','6','7']
 #component 
 LComponents = ['N','E','Z']
 # 0. limit SNR above signal is valid
 LimSNR = 2
 """1. Open Earthquakes file comtaining earthquakes features station, component and  Selection (in a separate script) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-with open('/home/rault/PHD/Data/List_EQ_St_Comp_Chichi_afterShocks.txt' as f:
+with open('/home/rault/PHD/Data/List_EQ_St_Comp_Chichi_afterShocks.txt') as f:
     LEqStCompFreq =json.load(f)
 
 """2. creation of a h5py file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-f = h5py.File('/home/rault/PHD/Results/Parallel_PeaktoPeak_SSLB_afterChichi.hdf5'%(MlMin,MlMax,DistMax), 'w',driver= 'mpio', comm=Comm,libver='latest')
+f = h5py.File('/home/rault/PHD/Results/Parallel_PeaktoPeak_SSLB_afterChichi.hdf5', 'w',driver= 'mpio', comm=Comm,libver='latest')
 #use libver='latest' will help to be faster !
 
 """ 3. Split the list of Component_frequency and the list of dataSet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -81,8 +79,8 @@ LEqStCompFreq_split = _split_seq(LEqStCompFreq,size)[me]
 """5. Build database : h5 file structure~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 for EqSta in LEqStCompFreq:
     # Get event characteristics
-    EQname, Station, Year,jJul, Hour, Secondp,Seconds, Ml,Depth, Rdistance, Lat,Long, Az,BAz,component,number, freqband = EqSta
-  
+    EQname, Station, Year,jJul, Hour, Secondp,Seconds, Ml,Depth, Rdistance, Lat,Long, Az,BAz,component = EqSta
+    Station='SSLB'
     if EQname not in f : 
         grpEQ = f.create_group(EQname)
         #print 'create group ', EQname
@@ -155,28 +153,34 @@ for worker in range(size):
         for EQstCompFreq in LEqStCompFreq_split:
         #            # 6.0 take case feature EQ, station component
             EQname, Station, Year,jJul, Hour, Secondp, Seconds,Ml,Depth, Rdistance, Lat,Long, Az,BAz, Component= EQstCompFreq
-                 
+            Station='SSLB'    
                 
             if Year<>f[EQname].attrs['Year'] or  Hour<>f[EQname].attrs['Hour'] or  jJul<>f[EQname].attrs['JJul']: 
                 print 'ERROR PROBLEM OF EQ FEATURES' , 'Je suis le worker {} et je traite le seisme {}, et la composante {}'.format(me,EQname,Component)
                 
                 
             ## 6.1 read file ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~(~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if not  os.path.exists('/home/rault/Data/Chichi/Seismic_Data/%s/%s/TW.SSLB._.__%s_%s'%(Year,jJul,Year,jJul)): 
+            if not  os.path.exists('/home/rault/PHD/Data/SSLB_data/%s/%s/TW.SSLB._.__%s_%s'%(str(Year),str(jJul),str(Year),str(jJul))):
+                print Year, jJul, 'no exist'
                #print 'file not existing Year :',  Year, 'Julian day : ',jJul, 'Hour : ', Hour
                f[EQname]['St{}'.format(Station)]['Exist_{}'.format(Component)][0]=False
                continue
            
-            st=read('/media/claire/GW/Chichi_Data/SSLB_data/%s/%s/TW.SSLB._.__%s_%s'%(Year,jJul,Year,jJul))
+            st=read('/home/rault/PHD/Data/SSLB_data/%s/%s/TW.SSLB._.__%s_%s'%(Year,jJul,Year,jJul))
             paz_st = {
                 'poles': [-6909+9208j,-6909-9208j,-6227+0j,-4936+4713j,-4936-4713j,-1391+0j,-556.8+60.05j,-556.8-60.05j,-98.44+442.8j,-98.44-442.8j,-10.95+0j,-0.037+0.037j,-0.037-0.037j,-255.1+0j],
                 'zeros': [ 0j, 0j, -5907+3411j, -5907-3411j, -683.9+175.5j, 
         -683.9-175.5j, -555.1+0j, -294.6+0j, -10.75+0j],
                 'gain': 2.36297e+17,
                 'sensitivity': 6.176e+8} 
+            trZ = st.select(component="Z")[0]
+            st.trim(starttime= trZ.stats.starttime+3600*float(Hour)+Secondp-5*60, endtime= trZ.stats.starttime+3600*float(Hour)+Secondp + 5*60)
             #if the begining of the signal is too close to 00min then the wave peaking won't be accurate thus it's necessary to merge the signal whith the previous one! 
-            tr1 = st.select(component=Component)
-
+            try:             
+                tr1 = st.select(component=Component)[0]
+            except IndexError:
+                f[EQname]['St{}'.format(Station)]['Exist_{}'.format(Component)][0]=False
+                continue
             #6.1 Satureation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             Satured = Saturation(tr1,False)
             
@@ -184,17 +188,17 @@ for worker in range(size):
             tr1copy =copy.copy(tr1)
             tr1correct = tr1copy.simulate(paz_remove = paz_st,water_level= 1E-4,simulate_sensitivity= False,remove_sensitivity=True)
             
-            print 'Je suis le worker {} et je traite le seisme {}, et la composante {} pour la frequence max {}'.format(me,EQname,Component)
+            print 'Je suis le worker {} et je traite le seisme {}, et la composante {}'.format(me,EQname,Component)
 #           print 'There is still 
             #6.4 select the trace of the component~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
            
-            trZ = st_copy.select(component="Z")[0]
+            trZ = st.select(component="Z")[0]
             
             #6.5 TRIM the signal around the theorical Pwave time arrival~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            trZ.trim(starttime= trZ.stats.starttime+3600*Hour+60*minute, ensdtime= trZ.stats.starttime+3600*Hour+(60+6)*minute)
+            #trZ.trim(starttime= trZ.stats.starttime+3600*float(Hour)+Secondp, endtime= trZ.stats.starttime+3600*float(Hour)+Secondp + 10*60)
             
             #6.6Define Python instance nameEQ,magnitude,depth,Rdistance,Lat,Long,Az,time,Station, frequency band, stream, streamrot~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            EQ = PtPearthquakeSSLB(EQname,f[EQname].attrs['Ml'],f[EQname].attrs['Depth'],f[EQname]['St{}'.format(Station)].attrs['RDist'],f[EQname].attrs['Lat'],f[EQname].attrs['Long'],f[EQname]['St{}'.format(Station)].attrs['Az'],[Year,jJul,Hour,str(int(Secondp)),str(int(Seconds))],Station,tr1correct,Component)         
+            EQ = PtPearthquake(EQname,f[EQname].attrs['Ml'],f[EQname].attrs['Depth'],f[EQname]['St{}'.format(Station)].attrs['RDist'],f[EQname].attrs['Lat'],f[EQname].attrs['Long'],f[EQname]['St{}'.format(Station)].attrs['Az'],[Year,jJul,Hour,str(int(Secondp)),str(int(Seconds))],Station,tr1correct,Component)         
           
             #6.7 P and S arrivals calculated on the Z componenent~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             EQ.second_P, EQ.second_S = WavePicking2(trZ,5,int(EQ.time[3]),int(EQ.time[4]),False)
@@ -222,22 +226,25 @@ for worker in range(size):
                 EQ.FEnveloppe()
 ##                2.7 Dictionary containing parameters definition of the EQ considered at the given station for a given frequency of filtering
     ##                dataPickle = qstatcPickle.dumps(EQ)
+                if me ==48 : 
+                    
+                    st.plot(outfile = '\home\rault\PHD\Results\ '+ EQ.nameEQ+ EQ.Station +'.png')
+                    
             Dict = EQ.__dict__
             
-            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['PtP_{}'.format(EQ.Component)][number] = Dict['PeaktoPeak']
-            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SecondS_{}'.format(EQ.Component)][number] = Dict['second_S']
-            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SecondP_{}'.format(EQ.Component)][number] = Dict['second_P']
-            if number==10 : 
-                print 'NUMBER',number,'satured', Dict['Satured'][0], 'valid',Dict['valid'],Dict['PGA']
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['valid_{}'.format(EQ.Component)][0]=Dict['valid']
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SNR_{}'.format(EQ.Component)][0] = Dict['SNR']
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Satured_{}'.format(EQ.Component)][0] = Dict['Satured'][0]
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['PGA_{}'.format(EQ.Component)][0] = Dict['PGA']
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['PGV_{}'.format(EQ.Component)][0] = Dict['PGV']
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Arias_{}'.format(EQ.Component)][0]= Dict['Enveloppe']
-                #f[EQ.nameEQ]['St{}'.format(EQ.Station)]['EQ_Trim_{}'.format(EQ.Component)][0]= Dict['trTrim']
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Start_time_{}'.format(EQ.Component)][0]=calendar.timegm(starttime.utctimetuple())
-                f[EQ.nameEQ]['St{}'.format(EQ.Station)]['End_time_{}'.format(EQ.Component)][0]=calendar.timegm(endtime.utctimetuple())
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['PtP_{}'.format(EQ.Component)][0] = Dict['PeaktoPeak']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SecondS_{}'.format(EQ.Component)][0] = Dict['second_S']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SecondP_{}'.format(EQ.Component)][0] = Dict['second_P']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['valid_{}'.format(EQ.Component)][0]=Dict['valid']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['SNR_{}'.format(EQ.Component)][0] = Dict['SNR']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Satured_{}'.format(EQ.Component)][0] = Dict['Satured'][0]
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['PGA_{}'.format(EQ.Component)][0] = Dict['PGA']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['PGV_{}'.format(EQ.Component)][0] = Dict['PGV']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['EnveloppePeak_{}'.format(EQ.Component)][0]= Dict['Enveloppe']
+            #f[EQ.nameEQ]['St{}'.format(EQ.Station)]['EQ_Trim_{}'.format(EQ.Component)][0]= Dict['trTrim']
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['Start_time_{}'.format(EQ.Component)][0]=calendar.timegm(starttime.utctimetuple())
+            f[EQ.nameEQ]['St{}'.format(EQ.Station)]['End_time_{}'.format(EQ.Component)][0]=calendar.timegm(endtime.utctimetuple())
+        
                 
          
 print 'fclosing'          

@@ -400,7 +400,7 @@ def WavePicking2(tr,T, SecondP,SecondS,plot):
    
     # P and S coordinates 
     minF4p = np.argmin(f4[0: len(f4)-100])
-    if P_Sdelay <>0 :
+    if P_Sdelay<>0 :
         if len(f4[minF4p+int((1-0.20)*P_Sdelay*100):minF4p+int((1+0.50)*P_Sdelay*100)])<>0:
         # min s wave picking between after p plus 50% of the therorical  ps delay
             min2F4s2 = np.argmin(f4[minF4p+int((1-0.20)*P_Sdelay*100):minF4p+int((1+0.50)*P_Sdelay*100)])
@@ -408,8 +408,13 @@ def WavePicking2(tr,T, SecondP,SecondS,plot):
         else : 
             minF4s2 = minF4p+10
     else :
-        min2F4s2 = np.argmin(f4[minF4p+int((1-0.20)*2*100):minF4p+int((10)*2*100)])
-        minF4s2 = minF4p+(1-0.20)*2*100+min2F4s2
+        try: 
+            min2F4s2 = np.argmin(f4[minF4p+int((1-0.20)*2*100):minF4p+int((10)*2*100)])
+            minF4s2 = minF4p+(1-0.20)*2*100+min2F4s2
+        except ValueError :
+            print 'valueerror'
+            minF4s2 = minF4p+int((1-0.20)*2*100) #2second after
+            
     #tr_copy2.trim(starttime=tr_copy2.stats.starttime + SecondP-60 + int(minF4p/100)+ P_Sdelay)
   
     #minimum of points between p and s start function of distance  (calculated with vs =2.6 km.s-1 and vp = 4.1km.s-1)

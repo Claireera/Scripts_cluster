@@ -22,27 +22,28 @@ LStations = ['1','2','3','4','5','6','7']
 
  
 # 1. Selection (in a separate script) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#File = '/home/rault/PHD/Data/Event_stations_Caracteristics_2015_2016Full2.txt' 
-File = '/home/rault/PHD/Data/Event_stations_Caracteristics_SSLB_Chichi_afterShocks' #BATS
+#File = '/home/rault/PHD/Data/Even_stations_Caracteristics_2015_2016Full2.txt' 
+File = '/home/rault/PHD/Data/Event_stations_Caracteristics_SSLB_Chichi_afterShocks.txt' 
+File2 =  np.loadtxt(File,skiprows=1,delimiter = ',',converters ={0:lambda x: 1})  
 Outputfile = open('/home/rault/PHD/Data/List_EQ_St_Comp_Chichi_afterShocks.txt', mode = 'w+')
 
 # This selection returns a list of tuples (station_n, earthquake_m) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#A_St_EQ = Array_St_EQ_MlDist(File, MlMin, MlMax, DistMin, DistMax)
-A_St_EQ = Array_St_EQ_MlDist_BATS(File, MlMin, MlMax, DistMin, DistMax) # Bats
 Ldata = []
-for line in A_St_EQ:
+
+k=0
+for line in File2:
+
     #Earthquakes metadata (one line correspond to one EQ and one station)
-    station, year,jJul, hour, Secondp,Seconds,ml,depth, Rdistance, Lat,Long, Az = ConvertDatestr(line)
+    station, year,jJul, hour, Secondp,Seconds,ml,depth, Rdistance, Lat,Long, Az = ConvertDatestrSSLB(line)
     BAz = line[9]
     EQname = str(year)+'_'+str(jJul)+ '_'+str(hour)+'_'+str(int(Secondp/60))   
 #    LEQ.append(EQname)
 #    LSt.append(station)
     Ldata.append([EQname, station, year,jJul, hour, Secondp,Seconds,ml,depth, Rdistance, Lat,Long, Az,BAz])
 
-print 'number of  earthquakes selected with Ml %s max distence is %s'%(MlMax,MlMax), A_St_EQ.shape
 
 #component 
-LComponents = ['N','R','E','T','Z','H']
+LComponents = ['N','E','Z']
 
 #build a list of earthquakes and its features, plus station and frequencies : thus one worker will work for a given EQ, station, component and frequency   
 LEqStComp = Ldata
@@ -58,4 +59,5 @@ for EQSt in LEqStComp :
 # This selection returns a list of tuples (staftion_n, earthquake_m)
 # Write sequence of lines at the end of the file.ll
 json.dump(LEqStComp2,Outputfile)
+File2.close()
 Outputfile.close()

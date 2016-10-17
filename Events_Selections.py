@@ -401,8 +401,8 @@ def Array_St_EQ_MlDist(File, MlMin, MlMax, DistMin, DistMax) :
    
     return Aevent
     
-def Array_St_EQ_MlDist_BATS(File, MlMin, MlMax, DistMin, DistMax) : 
-    """ Return an array containing the BATS station -event caracteristics for events with a magnitude dbetween [MlMin; MlLMax] and distant from [DistMin, DistMax] to station 3
+def Array_St_EQ_MlDist(File, MlMin, MlMax, DistMin, DistMax) : 
+    """ Return an array containing the station -event caracteristics for events with a magnitude dbetween [MlMin; MlLMax] and distant from [DistMin, DistMax] to station 3
      
     * input : 
         - File: txt file containing event informations
@@ -441,23 +441,32 @@ def Array_St_EQ_MlDist_BATS(File, MlMin, MlMax, DistMin, DistMax) :
        columnDist = L1.index('R')
        columnMl = L1.index('ML')
        break
-    
+    for i, line in enumerate(B):
+        L1=line.split(',')
+        if 'a' in L1[0]:
+            List.append(i)
+        
     B.close()
-    A = np.loadtxt(File,skiprows=1,delimiter = ',',converters ={0:lambda x: 1 if x == 'YULB' else 2})      
+    A = np.loadtxt(File,skiprows=1,delimiter = ',',converters ={0:lambda x: int(x[1])})      
     #2. select ligne corresponding to the given station first ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    CoordSelected =  np.argwhere(((A[:, columnDist]>=DistMin) & (A[:, columnDist]<DistMax) & (A[:, columnMl]>=MlMin) & (A[:, columnMl]<MlMax)))
+    CoordSelected =  np.argwhere((A[:,0]==3) & (A[:, columnDist]>=DistMin) & (A[:, columnDist]<DistMax) & (A[:, columnMl]>=MlMin) & (A[:, columnMl]<MlMax))
     #take the coordinates of the EQ corresponding to the station considered
+    CoordSelectedst = CoordSelected
+    for station in ['1','2','4','5','6','7']:
+        CoordSelectedst = np.concatenate((CoordSelectedst,CoordSelected + Dictst[station]))
+        
+    print 'coord3',len(CoordSelected), 'coordst',len(CoordSelectedst)
     #CoordSelected =np.concatenate((CoordSelectedinf4,CoordSelectedsup4)) 
 
     #3. list of events :  build a new array containing all the information about the event we are interrested in~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Levent=[]
-    Levent = [A[i] for i in CoordSelected[:,0] if A[i] not in Levent] #number of row
+    Levent = [A[i] for i in CoordSelectedst[:,0] if A[i] not in Levent]
      
     Aevent = np.array(Levent)
     LEQ= [str()]
    
     return Aevent
-    
+     
 def DeleteEventMLDistJJulref(File, station, MlMin, MlMax, DistMin, DistMax):
     """ Return an array containing the station -event caracteristics for events with a magnitude dbetween [MlMin; MlLMax] and distant from [DistMin, DistMax] for a given julian day reference 
      
@@ -638,7 +647,51 @@ def ConvertDatestr(ligne):
     return station, year,jJul, hour, Secondp,Seconds,ml,depth, Rdistance, Lat,Long, Az
 
 
-
+def ConvertDatestrSSLB(ligne):
+    """ return year , station and hour in str format as use to select SAC original files 
+    * input:  
+        - ligne :  ligne of an array after selection or without selection ie 1D array
+    * output :
+        - year : type str; year of the event consider ex : 2015e+3 ==>  15 
+        - station : type str ; station considered ex 1e+3 ==> 1
+        - Hour type str; hour of the event ex 1 ==> 01   
+    * exemple :
+        ConvertDatestr([1.00000000e+00, 2.01500000e+03, 1.00000000e+00, 0.00000000e+00,3.21009088e+02,1.60000000e+00,9.23000000e+00,6.97429071e+01,-1.75018665e+02,4.95750780e+00])
+        ==>('1', '15', '01')
+    """
+    
+    station = str(int(ligne[0]))
+    year = str(int(ligne[1]))
+    Secondp =int(ligne[4])
+    Seconds=int(ligne[5])
+    ml = float(ligne[6])
+    depth = float(ligne[7])
+    Rdistance = float(ligne[8])
+    Lat = float(ligne[11])
+    Long = float(ligne[12])
+    Az = float(ligne[10])
+    if Secondp>3600 : 
+        h = int(Secondp)//3600
+        Seconds = int(Seconds)%3600 + int(Secondp)%3600
+        Secondp = int(Secondp)%3600
+        hour = int(ligne[3])+h 
+        ml = float(ligne[6])
+        if hour<10:
+            hour ='0'+str(hour)
+        else :
+            hour = str(hour)
+    else : 
+        if ligne[3]<10:
+            hour ='0'+str(int(ligne[3]))
+        else :
+            hour = str(int(ligne[3]))
+    if ligne[2]<10:
+        jJul = '00'+str(int(ligne[2]))
+    elif ligne[2]<100:
+        jJul = '0'+str(int(ligne[2]))
+    else :
+        jJul = str(int(ligne[2]))
+    return station, year,jJul, hour, Secondp,Seconds,ml,depth, Rdistance, Lat,Long, Az
 
 #TEts ################################################################
 #B= open(File,'r')
